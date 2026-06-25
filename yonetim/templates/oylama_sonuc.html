@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Geri Bildiriminiz Alındı</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: 'Segoe UI', sans-serif; }
+        .card { border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 20px; text-align: center; padding: 40px; }
+        .emoji { font-size: 80px; margin-bottom: 20px; display: block; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                {% if puan == 3 %}
+                    <span class="emoji">😍</span>
+                    <h2 class="text-success fw-bold">Harika!</h2>
+                    <p class="lead">Hizmetimizden memnun kalmanıza çok sevindik.</p>
+                {% elif puan == 2 %}
+                    <span class="emoji">😐</span>
+                    <h2 class="text-warning fw-bold">Teşekkürler</h2>
+                    <p class="lead">Geri bildiriminiz alındı. Daha iyisi için çalışacağız.</p>
+                {% else %}
+                    <span class="emoji">😡</span>
+                    <h2 class="text-danger fw-bold">Üzgünüz...</h2>
+                    <p class="lead">Yaşadığınız olumsuz deneyim için özür dileriz. Konuyla ilgileneceğiz.</p>
+                {% endif %}
+                
+                <hr class="my-4">
+                <p class="text-muted small">Bu pencereyi kapatabilirsiniz.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

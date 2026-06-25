@@ -1,0 +1,18 @@
+{% extends "admin/base.html" %}
+
+{% block title %}
+    MRZGR Yönetim Paneli
+{% endblock %}
+
+{% block branding %}
+    <h1 id="site-name">
+        <a href="{% url 'admin:index' %}">
+            🚀 MRZGR Helpdesk Yönetimi
+        </a>
+    </h1>
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <link rel="icon" href="https://img.icons8.com/color/48/rocket.png" type="image/png">
+{% endblock %}

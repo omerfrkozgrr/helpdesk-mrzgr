@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="tr" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <title>Cihaz Detayı - MRZGR Helpdesk</title>
+    <link rel="icon" href="https://img.icons8.com/color/48/rocket.png" type="image/png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        .card { border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-radius: 12px; }
+        .header-bg { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 25px; border-radius: 12px 12px 0 0; }
+        .info-row { padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+        .info-row:last-child { border-bottom: none; }
+        .ip-badge { font-family: 'Courier New', monospace; font-size: 1rem; }
+        [data-bs-theme="dark"] .card { background-color: #2b3035 !important; }
+        [data-bs-theme="dark"] .bg-light { background-color: #3a3f44 !important; color: #fff !important; }
+        [data-bs-theme="dark"] .text-muted { color: #adb5bd !important; }
+        [data-bs-theme="dark"] .info-row { border-color: rgba(255,255,255,0.08); }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{% url 'anasayfa' %}">🚀 MRZGR Helpdesk</a>
+        <div class="d-flex align-items-center text-white">
+            <button class="btn btn-outline-light btn-sm me-3 border-0" id="themeToggle">🌙</button>
+            <a href="{% url 'profilim' %}" class="text-decoration-none text-white me-3 fw-bold">
+                {% if user.is_superuser %}👮‍♂️{% else %}👤{% endif %} {{ user.username|upper }}
+            </a>
+            <form action="{% url 'cikis' %}" method="post">{% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger">Çıkış Yap</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <a href="{% url 'cihaz_listesi' %}" class="btn btn-outline-secondary mb-3">← Cihaz Listesine Dön</a>
+
+            <div class="card">
+                <!-- BAŞLIK -->
+                <div class="header-bg">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fs-1">
+                                {% if cihaz.tip == 'Laptop' %}💻
+                                {% elif cihaz.tip == 'Telefon' %}📱
+                                {% elif cihaz.tip == 'Monitor' %}🖥️
+                                {% elif cihaz.tip == 'Yazici' %}🖨️
+                                {% else %}🔌{% endif %}
+                            </span>
+                            <h2 class="fw-bold mt-1 mb-0">{{ cihaz.ad }}</h2>
+                            <p class="opacity-75 mb-0">{{ cihaz.get_tip_display }}</p>
+                        </div>
+                        <span class="badge bg-light text-dark fs-6 px-3 py-2 rounded-pill">{{ cihaz.seri_no }}</span>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+
+                    <!-- BİLGİLER -->
+                    <h5 class="text-secondary mb-3">📋 Cihaz Bilgileri</h5>
+                    <div class="mb-4">
+                        <div class="info-row d-flex justify-content-between">
+                            <span class="text-muted"><i class="fas fa-user me-2"></i>Zimmetli Personel</span>
+                            {% if cihaz.sahibi %}
+<a href="{% url 'personel_karti' cihaz.sahibi.id %}" class="fw-bold text-decoration-none">
+    👤 {{ cihaz.sahibi.username }}
+</a>
+{% else %}
+<strong class="text-muted">Atanmamış</strong>
+{% endif %}
+                        </div>
+                        <div class="info-row d-flex justify-content-between">
+                            <span class="text-muted"><i class="fas fa-tag me-2"></i>Cihaz Tipi</span>
+                            <strong>{{ cihaz.get_tip_display }}</strong>
+                        </div>
+                        <div class="info-row d-flex justify-content-between">
+                            <span class="text-muted"><i class="fas fa-barcode me-2"></i>Seri Numarası</span>
+                            <strong>{{ cihaz.seri_no }}</strong>
+                        </div>
+                        {% if cihaz.alim_tarihi %}
+                        <div class="info-row d-flex justify-content-between">
+                            <span class="text-muted"><i class="fas fa-calendar me-2"></i>Alım Tarihi</span>
+                            <strong>{{ cihaz.alim_tarihi|date:"d M Y" }}</strong>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- UZAKTAN BAĞLANTI -->
+                    <h5 class="text-secondary mb-3">🌐 Uzaktan Bağlantı Bilgileri</h5>
+                    {% if cihaz.ip_adresi %}
+                    <div class="p-4 border rounded mb-4" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef);">
+                        <div class="info-row d-flex justify-content-between">
+                            <span class="text-muted"><i class="fas fa-network-wired me-2"></i>IP Adresi</span>
+                            <span class="badge bg-dark ip-badge px-3 py-2">{{ cihaz.ip_adresi }}</span>
+                        </div>
+                        <div class="info-row d-flex justify-content-between">
+                            <span class="text-muted"><i class="fas fa-plug me-2"></i>RDP Port</span>
+                            <span class="badge bg-secondary ip-badge px-3 py-2">{{ cihaz.rdp_port }}</span>
+                        </div>
+                        {% if user.is_staff or user.is_superuser %}
+                        <div class="mt-3">
+                            <a href="{% url 'rdp_baglanti' cihaz.id %}" target="_blank"
+                               class="btn btn-success btn-lg w-100 fw-bold py-3">
+                                <i class="fas fa-desktop me-2"></i> UZAKTAN BAĞLANMAYI BAŞLAT
+                            </a>
+                            <small class="text-muted d-block text-center mt-2">
+                                <i class="fas fa-info-circle me-1"></i> RDP protokolü ile bağlantı kurulur.
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Bu cihaz için IP adresi girilmemiş. Uzaktan bağlantı kurulamaz.
+                        {% if user.is_superuser %}
+                        <br><small>Admin panelinden IP ekleyebilirsin.</small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- İLGİLİ GÖREVLER -->
+                    {% if ilgili_gorevler %}
+                    <h5 class="text-secondary mb-3">📝 Bu Cihaza Ait Görevler</h5>
+                    <div class="list-group mb-4">
+                        {% for gorev in ilgili_gorevler %}
+                        <a href="{% url 'gorev_detay' gorev.gorev_id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ gorev.baslik }}</strong>
+                                <small class="text-muted d-block">{{ gorev.olusturma_tarihi|date:"d M Y" }}</small>
+                            </div>
+                            <span class="badge {% if gorev.durum == 'Tamamlandı' %}bg-success{% elif gorev.durum == 'Devam Ediyor' %}bg-warning text-dark{% else %}bg-secondary{% endif %} rounded-pill">
+                                {{ gorev.durum }}
+                            </span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- GERİ VE SİL -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'cihaz_listesi' %}" class="btn btn-outline-secondary">← Geri</a>
+                        {% if user.is_superuser %}
+                        <a href="{% url 'cihaz_sil' cihaz.id %}" class="btn btn-outline-danger"
+                           onclick="return confirm('Bu cihaz silinsin mi?')">🗑️ Cihazı Sil</a>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const toggleBtn = document.getElementById('themeToggle');
+    const htmlElement = document.documentElement;
+    if (localStorage.getItem('theme') === 'dark') { htmlElement.setAttribute('data-bs-theme', 'dark'); toggleBtn.innerHTML = '☀️'; }
+    toggleBtn.addEventListener('click', () => {
+        if (htmlElement.getAttribute('data-bs-theme') === 'dark') {
+            htmlElement.setAttribute('data-bs-theme', 'light'); localStorage.setItem('theme', 'light'); toggleBtn.innerHTML = '🌙';
+        } else {
+            htmlElement.setAttribute('data-bs-theme', 'dark'); localStorage.setItem('theme', 'dark'); toggleBtn.innerHTML = '☀️';
+        }
+    });
+</script>
+</body>
+</html>

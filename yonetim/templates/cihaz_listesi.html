@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% block title %}Cihaz Yönetimi - MRZGR Helpdesk{% endblock %}
+
+{% block extra_style %}
+<style>
+    .header-bg { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 25px; border-radius: 12px 12px 0 0; }
+    .cihaz-kart { transition: transform 0.2s, box-shadow 0.2s; border-radius: 12px; }
+    .cihaz-kart:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
+    .ip-badge { font-family: 'Courier New', monospace; font-size: 0.85rem; }
+    #loadingOverlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,0.6); z-index: 9999;
+        flex-direction: column; align-items: center; justify-content: center;
+        backdrop-filter: blur(4px);
+    }
+    #loadingOverlay.show { display: flex; }
+    .loading-box { background: white; border-radius: 16px; padding: 40px 50px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .loading-spinner { width: 60px; height: 60px; border: 5px solid #e9ecef; border-top: 5px solid #28a745; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-dots::after { content: ''; animation: dots 1.5s steps(4, end) infinite; }
+    @keyframes dots { 0%{content:'';} 25%{content:'.';} 50%{content:'..';} 75%{content:'...';} 100%{content:'';} }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="loadingOverlay">
+    <div class="loading-box">
+        <div class="loading-spinner"></div>
+        <h5>🖥️ Bağlantı Kuruluyor</h5>
+        <p>RDP oturumu başlatılıyor<span class="loading-dots"></span></p>
+        <small class="text-muted mt-2 d-block">Guacamole bağlantısı hazırlanıyor</small>
+    </div>
+</div>
+
+<div class="container mb-5">
+
+    <div class="card mb-4">
+        <div class="header-bg d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-1">🖥️ Cihaz Yönetimi</h2>
+                <p class="mb-0 opacity-75">Sisteme kayıtlı tüm cihazlar ve uzaktan bağlantı ayarları</p>
+            </div>
+            {% if user.is_superuser %}
+            <button class="btn btn-success fw-bold px-4" data-bs-toggle="modal" data-bs-target="#cihazEkleModal">
+                <i class="fas fa-plus me-2"></i> Yeni Cihaz Ekle
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card p-3 text-center">
+                <div class="fs-1">🖥️</div>
+                <div class="fs-4 fw-bold text-primary">{{ cihazlar.count }}</div>
+                <div class="text-muted">Toplam Cihaz</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 text-center">
+                <div class="fs-1">💻</div>
+                <div class="fs-4 fw-bold text-success">{{ laptop_sayisi }}</div>
+                <div class="text-muted">Laptop</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 text-center">
+                <div class="fs-1">🔌</div>
+                <div class="fs-4 fw-bold text-warning">{{ rdp_hazir }}</div>
+                <div class="text-muted">RDP Hazır (IP'li)</div>
+            </div>
+        </div>
+    </div>
+
+    {% if cihazlar %}
+    <div class="row g-3">
+        {% for cihaz in cihazlar %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card cihaz-kart h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="fs-2">
+                                {% if cihaz.tip == 'Laptop' %}💻
+                                {% elif cihaz.tip == 'Telefon' %}📱
+                                {% elif cihaz.tip == 'Monitor' %}🖥️
+                                {% elif cihaz.tip == 'Yazici' %}🖨️
+                                {% else %}🔌{% endif %}
+                            </span>
+                            <h5 class="fw-bold mt-1 mb-0">{{ cihaz.ad }}</h5>
+                            <small class="text-muted">{{ cihaz.get_tip_display }}</small>
+                        </div>
+                        <span class="badge bg-secondary rounded-pill">{{ cihaz.seri_no }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-user text-muted me-2" style="width:16px"></i>
+                            <span>{{ cihaz.sahibi.username|default:"Atanmamış" }}</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-network-wired text-muted me-2" style="width:16px"></i>
+                            {% if cihaz.ip_adresi %}
+                                <span class="badge bg-dark ip-badge">{{ cihaz.ip_adresi }}:{{ cihaz.rdp_port }}</span>
+                            {% else %}
+                                <span class="text-muted fst-italic">IP girilmemiş</span>
+                            {% endif %}
+                        </div>
+                        {% if cihaz.alim_tarihi %}
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-calendar text-muted me-2" style="width:16px"></i>
+                            <span class="text-muted">{{ cihaz.alim_tarihi|date:"d M Y" }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex gap-2 mt-auto">
+                        <a href="{% url 'demirbas_detay' cihaz.id %}" class="btn btn-outline-primary btn-sm flex-grow-1">
+                            <i class="fas fa-info-circle me-1"></i> Detay
+                        </a>
+                        {% if cihaz.ip_adresi and user.is_staff %}
+                        <a href="{% url 'rdp_baglanti' cihaz.id %}" target="_blank"
+                           class="btn btn-success btn-sm flex-grow-1 rdp-btn" data-cihaz="{{ cihaz.ad }}">
+                            <i class="fas fa-desktop me-1"></i> Bağlan
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <div style="font-size:5rem;">🖥️</div>
+            <h4 class="text-muted mt-3">Henüz cihaz eklenmemiş</h4>
+            <p class="text-muted">Sisteme kayıtlı bir cihaz bulunmuyor.</p>
+            {% if user.is_superuser %}
+            <button class="btn btn-success fw-bold px-4 mt-2" data-bs-toggle="modal" data-bs-target="#cihazEkleModal">
+                <i class="fas fa-plus me-2"></i> İlk Cihazı Ekle
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if user.is_superuser %}
+<div class="modal fade" id="cihazEkleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">🖥️ Yeni Cihaz Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Cihaz Adı *</label>
+                            <input type="text" name="ad" class="form-control" placeholder="Örn: MSI Thin15 - Muhasebe" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Cihaz Tipi *</label>
+                            <select name="tip" class="form-select" required>
+                                <option value="Laptop">💻 Laptop</option>
+                                <option value="Telefon">📱 Telefon</option>
+                                <option value="Monitor">🖥️ Monitör</option>
+                                <option value="Yazici">🖨️ Yazıcı</option>
+                                <option value="Diger">🔌 Diğer</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Seri Numarası *</label>
+                            <input type="text" name="seri_no" class="form-control" placeholder="Örn: SN-2024-001" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Zimmetli Personel</label>
+                            <select name="sahibi" class="form-select">
+                                <option value="">-- Seçiniz --</option>
+                                {% for kullanici in kullanicilar %}
+                                <option value="{{ kullanici.id }}">{{ kullanici.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Alım Tarihi</label>
+                            <input type="date" name="alim_tarihi" class="form-control">
+                        </div>
+                        <div class="col-12"><hr></div>
+                        <p class="text-muted mb-0"><i class="fas fa-info-circle me-1"></i> Uzaktan bağlantı için IP ve port bilgisi gereklidir.</p>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">IP Adresi</label>
+                            <input type="text" name="ip_adresi" class="form-control" placeholder="Örn: 192.168.1.15">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">RDP Port</label>
+                            <input type="number" name="rdp_port" class="form-control" value="3389">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">RDP Kullanıcı Adı</label>
+                            <input type="text" name="rdp_username" class="form-control" placeholder="Örn: alica (boş bırakılırsa varsayılan)">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">RDP Şifresi</label>
+                            <input type="text" name="rdp_password" class="form-control" placeholder="Boş bırakılırsa varsayılan şifre kullanılır">
+                        </div>
+                        <div class="col-12"><hr></div>
+                        <div class="col-12">
+                            <p class="text-muted mb-0"><i class="fas fa-tv me-1"></i> VNC ile bağlanmak istiyorsanız aşağıya VNC şifresini girin. VNC şifresi girilirse RDP alanları kullanılmaz ve aktif ekrana bağlanılır.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">VNC Şifresi</label>
+                            <input type="text" name="vnc_password" class="form-control" placeholder="Örn: Omer2026! (boş bırakılırsa RDP kullanılır)">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4">
+                        <i class="fas fa-save me-2"></i> Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.rdp-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const overlay = document.getElementById('loadingOverlay');
+            const cihazAd = this.getAttribute('data-cihaz');
+            overlay.querySelector('p').innerHTML = '<strong>' + cihazAd + '</strong> için RDP oturumu başlatılıyor<span class="loading-dots"></span>';
+            overlay.classList.add('show');
+            setTimeout(() => overlay.classList.remove('show'), 8000);
+        });
+    });
+</script>
+{% endblock %}

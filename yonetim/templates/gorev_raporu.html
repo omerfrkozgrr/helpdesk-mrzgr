@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Rapor - MRZGR Helpdesk{% endblock %}
+
+{% block content %}
+<div class="container mb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="text-primary fw-bold mb-1">📊 Personel Performans Karnesi</h3>
+            <p class="text-muted mb-0">Kim ne kadar çalıştı? Müşteri memnun mu?</p>
+        </div>
+    </div>
+
+    <div class="card shadow border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="p-3 ps-4">Personel Adı</th>
+                        <th class="text-center">Toplam</th>
+                        <th class="text-center text-success">✔ Biten</th>
+                        <th class="text-center text-warning">⚡ Aktif</th>
+                        <th class="text-center">⭐ Müşteri Puanı</th>
+                        <th class="pe-4" style="width: 25%;">Başarı Oranı</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in raporlar %}
+                    <tr>
+                        <td class="p-3 ps-4 fw-bold text-dark">
+                            <a href="{% url 'personel_karti' r.id %}" class="text-decoration-none text-reset">
+                                {% if r.ad == 'admin' or r.ad == 'patron' %}⭐{% else %}👤{% endif %}
+                                {{ r.ad|upper }}
+                            </a>
+                        </td>
+                        <td class="text-center fw-bold">{{ r.toplam }}</td>
+                        <td class="text-center text-success fw-bold">{{ r.tamamlanan }}</td>
+                        <td class="text-center text-warning fw-bold">{{ r.aktif }}</td>
+                        <td class="text-center">
+                            {% if r.oy_sayisi > 0 %}
+                                <span class="badge bg-warning text-dark border border-warning">{{ r.puan }} / 3.0</span>
+                                <small class="text-muted d-block" style="font-size:10px;">({{ r.oy_sayisi }} oy)</small>
+                            {% else %}
+                                <span class="text-muted small">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="pe-4">
+                            <div class="progress" style="height:22px;">
+                                <div class="progress-bar {% if r.yuzde < 40 %}bg-danger{% elif r.yuzde < 80 %}bg-warning text-dark{% else %}bg-success{% endif %}"
+                                     role="progressbar" style="width:{{ r.yuzde }}%;">{{ r.yuzde }}%</div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center p-4 text-muted">Kayıt yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="alert alert-info mt-4 d-flex align-items-center">
+        <span class="fs-4 me-2">💡</span>
+        <small><strong>Bilgi:</strong> Müşteri Puanı, tamamlanan görevlerden gelen geri bildirimlerin (1-3 arası) ortalamasıdır.</small>
+    </div>
+</div>
+{% endblock %}

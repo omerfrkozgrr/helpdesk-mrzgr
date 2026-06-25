@@ -1,0 +1,22 @@
+<!--
+  Bu dosya Guacamole'un bağlantı kimlik doğrulaması için kullanılır.
+  Kendi ortamınıza göre doldurun ve asla Git'e commit etmeyin.
+
+  user-mapping.xml.example dosyasını kopyalayarak başlayabilirsiniz:
+    cp guac_config/user-mapping.xml.example guac_config/user-mapping.xml
+
+  Kullanıcı adı ve şifreyi güvenli bir değerle değiştirin.
+  Hostname, hedef bilgisayarın IP adresidir.
+-->
+<user-mapping>
+    <authorize username="GUAC_KULLANICI" password="GUAC_SIFRE">
+        <!-- RDP bağlantısı örneği -->
+        <connection name="ornek-rdp">
+            <protocol>rdp</protocol>
+            <param name="hostname">HEDEF_IP</param>
+            <param name="port">3389</param>
+            <param name="username">RDP_KULLANICI</param>
+            <param name="password">RDP_SIFRE</param>
+        </connection>
+    </authorize>
+</user-mapping>

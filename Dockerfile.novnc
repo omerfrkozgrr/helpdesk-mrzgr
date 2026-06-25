@@ -1,0 +1,8 @@
+FROM python:3.11-slim
+RUN pip install websockify
+RUN apt-get update && apt-get install -y git && \
+    git clone https://github.com/novnc/noVNC.git /opt/novnc
+EXPOSE 6080
+CMD ["python", "-m", "websockify", "--web", "/opt/novnc", \
+     "--token-plugin", "TokenFile", "--token-source", "/tokens/token.cfg", \
+     "0.0.0.0:6080"]

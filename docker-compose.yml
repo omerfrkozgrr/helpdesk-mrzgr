@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres
+    container_name: helpdesk_db_container
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-helpdesk_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - helpdesk_net
+
+  guacd:
+    image: guacamole/guacd
+    container_name: guacd
+    restart: always
+    network_mode: "host"
+
+  guacamole:
+    image: guacamole/guacamole
+    container_name: guacamole
+    depends_on:
+      - guacd
+      - db
+    environment:
+      GUACD_HOSTNAME: ${GUACD_HOSTNAME:-172.19.0.1}
+      GUACD_PORT: 4822
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./guac_config:/etc/guacamole
+    networks:
+      - helpdesk_net
+
+  novnc:
+    build:
+      context: .
+      dockerfile: Dockerfile.novnc
+    container_name: novnc
+    restart: always
+    ports:
+      - "6080:6080"
+    volumes:
+      - ./novnc_tokens:/tokens
+
+networks:
+  helpdesk_net:
+    driver: bridge
+
+volumes:
+  postgres_data:

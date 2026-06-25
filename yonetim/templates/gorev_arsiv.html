@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Arşiv - MRZGR Helpdesk{% endblock %}
+
+{% block extra_css %}
+[data-bs-theme="dark"] .card-footer { background-color: #2b3035 !important; }
+{% endblock %}
+
+{% block content %}
+<div class="container mb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="text-success fw-bold mb-0">🗄️ Arşiv Odası</h3>
+            <p class="text-muted mb-0">Tamamlanmış geçmiş görevler</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white p-3">
+            <form method="get" class="d-flex gap-2">
+                <input type="text" name="q" class="form-control" placeholder="Arşivde ara... (Örn: Yazıcı, Mouse)" value="{{ aranan|default:'' }}">
+                <button type="submit" class="btn btn-success">Ara</button>
+                {% if aranan %}
+                    <a href="{% url 'gorev_arsiv' %}" class="btn btn-outline-danger">Temizle</a>
+                {% endif %}
+            </form>
+        </div>
+
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-success">
+                    <tr>
+                        <th>ID</th>
+                        <th>Başlık</th>
+                        <th>Bitiş Tarihi</th>
+                        <th>Kim Çözdü?</th>
+                        <th class="text-end">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for gorev in gorevler %}
+                    <tr>
+                        <td><span class="badge bg-secondary">#{{ gorev.gorev_id }}</span></td>
+                        <td class="fw-bold">{{ gorev.baslik }}</td>
+                        <td>{{ gorev.tamamlanma_tarihi|date:"d M Y H:i" }}</td>
+                        <td>
+                            {% if gorev.cozen_personel %}
+                                <span class="badge bg-info text-dark">
+                                    {% if gorev.cozen_personel.is_superuser %}⭐{% else %}👮‍♂️{% endif %}
+                                    {{ gorev.cozen_personel.username|upper }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'gorev_detay' gorev.gorev_id %}" class="btn btn-sm btn-outline-dark">İncele</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted p-5">
+                            <div style="font-size:3rem;">📭</div>
+                            {% if aranan %}
+                                "<strong>{{ aranan }}</strong>" ile ilgili kayıt bulunamadı.
+                            {% else %}
+                                Henüz arşivlenmiş bir görev yok.
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer text-muted text-center bg-light">
+            Toplam {{ gorevler|length }} kayıt listelendi.
+        </div>
+    </div>
+</div>
+{% endblock %}

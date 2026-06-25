@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}MRZGR Helpdesk{% endblock %}
+
+{% block extra_css %}
+.card { border:none; transition:transform 0.2s; }
+.card:hover { transform:translateY(-5px); }
+[data-bs-theme="light"] .card { box-shadow:0 4px 15px rgba(0,0,0,0.05); }
+[data-bs-theme="dark"] .card { box-shadow:0 4px 15px rgba(255,255,255,0.05); background-color:#2b3035; }
+.table th { background-color:#2c3e50; color:white; }
+.clickable-row { cursor:pointer; }
+.clickable-row:hover td { background-color:rgba(13,110,253,0.06); }
+[data-bs-theme="dark"] .clickable-row:hover td { background-color:rgba(255,255,255,0.05); }
+@keyframes pulse-red {
+    0% { box-shadow:0 0 0 0 rgba(220,53,69,0.7); }
+    70% { box-shadow:0 0 0 10px rgba(220,53,69,0); }
+    100% { box-shadow:0 0 0 0 rgba(220,53,69,0); }
+}
+.acil-satir { border-left:6px solid #dc3545 !important; }
+[data-bs-theme="light"] .acil-satir { background-color:#fff5f5 !important; }
+[data-bs-theme="dark"] .acil-satir { background-color:#4a1818 !important; }
+.acil-satir td { color:#dc3545; font-weight:600; }
+.uyari-satir { border-left:6px solid #ffc107 !important; }
+[data-bs-theme="light"] .uyari-satir { background-color:#fffff0 !important; }
+[data-bs-theme="dark"] .uyari-satir { background-color:#4a4010 !important; }
+.badge-kritik { animation:pulse-red 2s infinite; }
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    {% for duyuru in duyurular %}
+    <div class="alert shadow-sm d-flex align-items-center justify-content-between mb-4 {% if duyuru.oncelik == 'Acil' %}alert-danger{% elif duyuru.oncelik == 'Kutlama' %}alert-success{% else %}alert-primary{% endif %}" role="alert">
+        <div class="d-flex align-items-center">
+            <span class="fs-2 me-3">{% if duyuru.oncelik == 'Acil' %}📢{% elif duyuru.oncelik == 'Kutlama' %}🎉{% else %}ℹ️{% endif %}</span>
+            <div><h5 class="alert-heading fw-bold mb-1">{{ duyuru.baslik }}</h5><p class="mb-0">{{ duyuru.mesaj }}</p><small class="opacity-75">{{ duyuru.tarih|date:"d M Y - H:i" }}</small></div>
+        </div>
+        <a href="{% url 'duyuru_okundu' duyuru.id %}" class="btn btn-sm btn-light border fw-bold text-nowrap ms-3">✅ Okudum</a>
+    </div>
+    {% endfor %}
+
+    <div class="row mb-5 mt-4">
+        <div class="col-md-3"><div class="card text-bg-warning mb-3 h-100 border-0"><div class="card-header border-0 bg-transparent">● Bekleyen</div><div class="card-body"><h1 class="card-title text-center fw-bold display-4">{{ bekleyen }}</h1><p class="text-center opacity-75">Adet Görev</p></div></div></div>
+        <div class="col-md-3"><div class="card text-bg-primary mb-3 h-100 border-0"><div class="card-header border-0 bg-transparent">● Devam Eden</div><div class="card-body"><h1 class="card-title text-center fw-bold display-4">{{ devam }}</h1><p class="text-center opacity-75">Personel Çalışıyor</p></div></div></div>
+        <div class="col-md-3"><div class="card text-bg-success mb-3 h-100 border-0"><div class="card-header border-0 bg-transparent">● Tamamlanan</div><div class="card-body"><h1 class="card-title text-center fw-bold display-4">{{ tamamlanan }}</h1><p class="text-center opacity-75">Çözülen Sorun</p></div></div></div>
+        <div class="col-md-3"><div class="card text-bg-secondary mb-3 h-100 border-0"><div class="card-header border-0 bg-transparent">● Toplam Kayıt</div><div class="card-body"><h1 class="card-title text-center fw-bold display-4">{{ toplam }}</h1><p class="text-center opacity-75">Sistemdeki Tüm Kayıtlar</p></div></div></div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="text-primary mb-0 fw-bold">📋 Güncel Görev Listesi</h3>
+                    <form method="get" class="d-flex gap-2 flex-grow-1 mx-4">
+                        <input type="text" name="q" class="form-control" placeholder="Aktif görevlerde ara..." value="{{ aranan|default:'' }}">
+                        <button type="submit" class="btn btn-primary">Ara</button>
+                        {% if aranan %}<a href="{% url 'anasayfa' %}" class="btn btn-outline-danger">Temizle</a>{% endif %}
+                    </form>
+                    <a href="{% url 'gorev_ekle' %}" class="btn btn-primary fw-bold">+ Yeni Görev Ekle</a>
+                </div>
+
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>ID</th><th>Başlık</th><th>Sorumlu</th><th>Durum</th><th>Öncelik</th><th>Tarih</th><th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for gorev in gorevler %}
+                        <tr class="clickable-row {% if gorev.aciliyet_durumu == 'kritik' %}acil-satir{% elif gorev.aciliyet_durumu == 'uyari' %}uyari-satir{% endif %}"
+                            data-href="{% url 'gorev_detay' gorev.gorev_id %}">
+                            <td><span class="badge bg-dark">#{{ gorev.gorev_id }}</span></td>
+                            <td class="fw-bold">
+                                {% if gorev.aciliyet_durumu == 'kritik' %}<span class="badge bg-danger badge-kritik me-2">🔥 GEÇ KALINDI!</span>
+                                {% elif gorev.aciliyet_durumu == 'uyari' %}<span class="badge bg-warning text-dark me-2">⚠️ Gecikiyor</span>{% endif %}
+                                {{ gorev.baslik }}
+                            </td>
+                            <td>
+                                {% if gorev.atanan_personel %}
+                                    {% if gorev.atanan_personel == user %}<span class="badge bg-success border border-white shadow-sm p-2">⚡ SİZDE</span>
+                                    {% else %}<span class="badge bg-info text-dark">👤 {{ gorev.atanan_personel.username|upper }}</span>{% endif %}
+                                {% else %}<span class="badge bg-secondary opacity-50">Havuzda</span>{% endif %}
+                            </td>
+                            <td>
+                                {% if gorev.durum == 'Bekliyor' %}<span class="badge bg-warning text-dark">{{ gorev.durum }}</span>
+                                {% elif gorev.durum == 'Devam Ediyor' %}<span class="badge bg-primary">{{ gorev.durum }}</span>
+                                {% elif gorev.durum == 'Tamamlandı' %}<span class="badge bg-success">{{ gorev.durum }}</span>
+                                {% else %}<span class="badge bg-secondary">{{ gorev.durum }}</span>{% endif %}
+                            </td>
+                            <td>{{ gorev.oncelik }}</td>
+                            <td>{{ gorev.olusturma_tarihi|date:"d M H:i" }}</td>
+                            <td><i class="fas fa-chevron-right text-muted"></i></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center p-5">
+                                <div style="font-size:4rem;">😎</div>
+                                <h4 class="text-muted mt-3">Bekleyen görev yok!</h4>
+                                <p class="text-muted">Her şey yolunda görünüyor.</p>
+                                <a href="{% url 'gorev_ekle' %}" class="btn btn-primary mt-2">+ Yeni Görev Ekle</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <small class="text-muted mt-2"><i class="fas fa-info-circle me-1"></i> Satıra tıklayarak görev detayına gidebilirsin.</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.clickable-row').forEach(row => {
+        row.addEventListener('click', function() {
+            window.location.href = this.getAttribute('data-href');
+        });
+    });
+</script>
+{% endblock %}

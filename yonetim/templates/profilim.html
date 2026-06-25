@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Profilim - MRZGR Helpdesk{% endblock %}
+
+{% block extra_css %}
+.avatar-box { width:150px; height:150px; border-radius:50%; object-fit:cover; border:5px solid #fff; box-shadow:0 5px 15px rgba(0,0,0,0.1); }
+.card { border:none; }
+[data-bs-theme="dark"] .card { background-color:#343a40; border-color:#495057; }
+[data-bs-theme="dark"] .card-header { border-bottom-color:#495057; }
+[data-bs-theme="dark"] .avatar-box { border-color:#343a40; }
+[data-bs-theme="dark"] hr { border-color:#495057; }
+{% endblock %}
+
+{% block content %}
+<div class="container mb-5">
+    <div class="row">
+        <!-- SOL: KARTVİZİT -->
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow text-center p-4">
+                <div class="mx-auto mb-3">
+                    {% if user.profil.resim %}
+                        <img src="{{ user.profil.resim.url }}" class="avatar-box">
+                    {% else %}
+                        <div class="avatar-box d-flex align-items-center justify-content-center bg-primary text-white fs-1 fw-bold">
+                            {{ user.username|make_list|first|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+                <h4 class="text-dark">{{ user.first_name }} {{ user.last_name }}</h4>
+                <p class="text-muted mb-1">@{{ user.username }}</p>
+                <span class="badge bg-info text-dark mb-3">{{ user.profil.departman|default:"Departman Girilmemiş" }}</span>
+                <hr>
+                <div class="text-start small text-muted">
+                    <p>📧 {{ user.email }}</p>
+                    <p>📞 {{ user.profil.telefon|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SAĞ: FORMLAR -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-white fw-bold py-3 text-dark">📝 Bilgilerimi Güncelle</div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">{{ bilgi_form.first_name.label_tag }} {{ bilgi_form.first_name }}</div>
+                            <div class="col-md-6">{{ bilgi_form.last_name.label_tag }} {{ bilgi_form.last_name }}</div>
+                            <div class="col-md-12">{{ bilgi_form.email.label_tag }} {{ bilgi_form.email }}</div>
+                            <div class="col-md-6">{{ bilgi_form.departman.label_tag }} {{ bilgi_form.departman }}</div>
+                            <div class="col-md-6">{{ bilgi_form.telefon.label_tag }} {{ bilgi_form.telefon }}</div>
+                            <div class="col-md-12">
+                                <label class="form-label">Profil Resmi</label>
+                                {{ bilgi_form.resim }}
+                            </div>
+                        </div>
+                        <button type="submit" name="bilgi_guncelle" class="btn btn-primary mt-3">Kaydet</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow">
+                <div class="card-header bg-danger text-white fw-bold py-3">🔒 Şifre Değiştir</div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in sifre_form %}
+                            <div class="mb-3">
+                                <label class="form-label small text-muted">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger small">{{ field.errors }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" name="sifre_degistir" class="btn btn-danger">Şifreyi Güncelle</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('input[type="password"]').forEach(input => {
+        input.classList.add('form-control');
+    });
+</script>
+{% endblock %}

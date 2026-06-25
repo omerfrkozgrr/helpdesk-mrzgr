@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="tr" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}MRZGR Helpdesk{% endblock %}</title>
+    <link rel="icon" href="https://img.icons8.com/color/48/rocket.png" type="image/png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        .nav-link-item {
+            text-decoration: none;
+            color: rgba(255,255,255,0.75);
+            padding: 5px 10px;
+            border-radius: 6px;
+            transition: background 0.2s, color 0.2s;
+            font-size: 0.9rem;
+        }
+        .nav-link-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .nav-link-item.aktif { background: rgba(255,255,255,0.18); color: #fff; font-weight: 600; }
+        [data-bs-theme="dark"] body { background-color: #121212; color: #e0e0e0; }
+        [data-bs-theme="dark"] .card { background-color: #1e1e1e !important; }
+        [data-bs-theme="dark"] .bg-light { background-color: #2c2c2c !important; color: #fff !important; }
+        [data-bs-theme="dark"] .bg-white { background-color: #252525 !important; color: #fff !important; }
+        [data-bs-theme="dark"] .text-dark { color: #f8f9fa !important; }
+        [data-bs-theme="dark"] .text-muted { color: #adb5bd !important; }
+        [data-bs-theme="dark"] .border { border-color: #444 !important; }
+        [data-bs-theme="dark"] input, [data-bs-theme="dark"] textarea, [data-bs-theme="dark"] select { background-color: #2b3035 !important; color: #fff !important; border-color: #495057 !important; }
+        [data-bs-theme="dark"] .table { color: #e9ecef; border-color: #495057; }
+        [data-bs-theme="dark"] .table-hover tbody tr:hover { background-color: #3c424a; }
+        [data-bs-theme="dark"] .form-control { background-color: #2b3035; border-color: #495057; color: #f8f9fa; }
+        [data-bs-theme="dark"] .modal-content { background-color: #2b3035; color: #fff; }
+        [data-bs-theme="dark"] .modal-header, [data-bs-theme="dark"] .modal-footer { border-color: #444; }
+        [data-bs-theme="dark"] .dropdown-menu { background-color: #2b3035; }
+        [data-bs-theme="dark"] .dropdown-item { color: #e0e0e0; }
+        [data-bs-theme="dark"] .dropdown-item:hover { background-color: #3a3f44; }
+    </style>
+    {% block extra_style %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{% url 'anasayfa' %}">🚀 MRZGR Helpdesk</a>
+
+        <div class="d-flex align-items-center gap-2">
+
+            <button class="btn btn-outline-light btn-sm border-0" id="themeToggle" title="Tema">🌙</button>
+
+            <!-- BİLDİRİM ZİLİ — her zaman görünür -->
+            <div class="dropdown me-1">
+                <div class="position-relative" data-bs-toggle="dropdown" style="cursor:pointer;">
+                    <span class="fs-5 text-white">🔔</span>
+                    {% if bildirim_adet > 0 %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{ bildirim_adet }}</span>
+                    {% endif %}
+                </div>
+                <ul class="dropdown-menu dropdown-menu-end mt-3" style="width:320px; border:none; box-shadow:0 5px 20px rgba(0,0,0,0.15);">
+                    <li><h6 class="dropdown-header text-uppercase text-muted" style="font-size:.75rem;">Son Bildirimler</h6></li>
+                    {% for bildirim in bildirim_listesi %}
+                    <li><a class="dropdown-item p-3 border-bottom" href="{% url 'gorev_detay' bildirim.gorev.gorev_id %}">
+                        <div class="d-flex"><div class="me-2 text-primary">💬</div>
+                        <div><div class="small fw-bold mb-1">{{ bildirim.gorev.baslik|truncatechars:30 }}</div>
+                        <div class="small text-muted">{{ bildirim.mesaj|truncatechars:50 }}</div>
+                        <div class="text-end mt-1" style="font-size:.7rem;opacity:.7;">{{ bildirim.tarih|timesince }} önce</div>
+                        </div></div></a></li>
+                    {% empty %}
+                    <li><div class="dropdown-item text-center text-muted p-3">Yeni bildirim yok.</div></li>
+                    {% endfor %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-center text-primary fw-bold small py-2" href="{% url 'bildirim_gecmisi' %}">Tüm Geçmişi Gör 🗄️</a></li>
+                </ul>
+            </div>
+
+            <!-- NAV LİNKLERİ -->
+            <a href="{% url 'anasayfa' %}" class="nav-link-item {% if request.resolver_match.url_name == 'anasayfa' %}aktif{% endif %}">🏠 Ana Sayfa</a>
+            <a href="{% url 'gorev_arsiv' %}" class="nav-link-item {% if request.resolver_match.url_name == 'gorev_arsiv' %}aktif{% endif %}">🗄️ Arşiv</a>
+            {% if user.is_superuser %}
+            <a href="{% url 'gorev_raporu' %}" class="nav-link-item {% if request.resolver_match.url_name == 'gorev_raporu' %}aktif{% endif %}">📊 Rapor</a>
+            {% endif %}
+            {% if user.is_staff or user.is_superuser %}
+            <a href="{% url 'cihaz_listesi' %}" class="nav-link-item {% if request.resolver_match.url_name == 'cihaz_listesi' or request.resolver_match.url_name == 'demirbas_detay' %}aktif{% endif %}">🖥️ Cihazlar</a>
+            {% endif %}
+
+            <a href="{% url 'profilim' %}" class="text-decoration-none text-white ms-1 fw-bold" style="font-size:.9rem;">
+                {% if user.is_superuser %}👮‍♂️{% else %}👤{% endif %} {{ user.username|upper }}
+            </a>
+            <form action="{% url 'cikis' %}" method="post">{% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger">Çıkış</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+{% block content %}{% endblock %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const toggleBtn = document.getElementById('themeToggle');
+    const htmlElement = document.documentElement;
+    if (localStorage.getItem('theme') === 'dark') { htmlElement.setAttribute('data-bs-theme', 'dark'); toggleBtn.innerHTML = '☀️'; }
+    toggleBtn.addEventListener('click', () => {
+        if (htmlElement.getAttribute('data-bs-theme') === 'dark') {
+            htmlElement.setAttribute('data-bs-theme', 'light'); localStorage.setItem('theme', 'light'); toggleBtn.innerHTML = '🌙';
+        } else {
+            htmlElement.setAttribute('data-bs-theme', 'dark'); localStorage.setItem('theme', 'dark'); toggleBtn.innerHTML = '☀️';
+        }
+    });
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

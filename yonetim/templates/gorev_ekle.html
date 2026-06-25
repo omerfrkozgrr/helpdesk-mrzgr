@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Yeni Görev Ekle</title>
+    <link rel="icon" href="https://img.icons8.com/color/48/rocket.png" type="image/png">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white p-3">
+                    <h4 class="mb-0 fw-bold">✍️ Yeni Görev Oluştur</h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <!-- DİKKAT: enctype="multipart/form-data" DOSYA YÜKLEMEK İÇİN ŞARTTIR! -->
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Başlık Alanı -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary">Görev Başlığı</label>
+                            {{ form.baslik }}
+                        </div>
+
+                        <!-- Öncelik ve Durum (Yan Yana) -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-secondary">Öncelik</label>
+                                {{ form.oncelik }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-secondary">Durum</label>
+                                {{ form.durum }}
+                            </div>
+                        </div>
+
+                        <!-- Açıklama Alanı -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary">Açıklama</label>
+                            {{ form.aciklama }}
+                        </div>
+
+                        <hr class="text-muted opacity-25">
+
+                          <!-- PERSONEL SEÇİMİ (Sadece Admin Görür) -->
+                        {% if form.atanacak_kisi %}
+                        <div class="mb-3 p-3 bg-light border rounded">
+                            <label class="form-label fw-bold text-danger">⚡ Hızlı Atama (Sadece Admin)</label>
+                            {{ form.atanacak_kisi }}
+                            <div class="form-text">Birini seçerseniz görev direkt ona atanır ve "Devam Ediyor" moduna geçer.</div>
+                        </div>
+                        {% endif %}
+
+                        <!-- DOSYA YÜKLEME ALANI (Yeni Eklenen) -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-primary">📎 Dosya / Fotoğraf Ekle (İsteğe Bağlı)</label>
+                            <div class="input-group">
+                                {{ form.dosya }}
+                            </div>
+                            <div class="form-text text-muted">
+                                Hata ekran görüntüsü, fotoğraf veya belge yükleyebilirsiniz.
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Butonlar -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'anasayfa' %}" class="btn btn-outline-secondary px-4">İptal</a>
+                            <button type="submit" class="btn btn-success px-5 fw-bold">Kaydet ve Oluştur</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
